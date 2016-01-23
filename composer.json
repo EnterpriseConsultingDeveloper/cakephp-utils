@@ -1,14 +1,14 @@
 {
     "name": "whiterabbit/cakephp-utils",
-    "description": "Plugins for CakePHP 3.x",
-    "type": "cakephp-plugin",
+    "description": "Some utils for CakePHP 3.x like an Uploadable Behaviour for AmazonS3",
     "license": "MIT",
     "authors": [
         {
-            "name": "Dino Fratelli",
+            "name": "dinofratelli",
             "email": "dinofratelli@gmail.com"
         }
     ],
+    "minimum-stability": "dev",
     "require": {
         "php": ">=5.4",
         "cakephp/cakephp": "~3.0"
