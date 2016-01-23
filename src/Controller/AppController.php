@@ -12,12 +12,12 @@
  * @since         1.0
  * @license       http://www.opensource.org/licenses/mit-license.php MIT License
  */
-namespace Utils\Controller;
+namespace WRUtils\Controller;
 
 use App\Controller\AppController as BaseController;
 
 /**
- * AppController Class for Utils Plugin
+ * AppController Class for WRUtils Plugin
  *
  */
 class AppController extends BaseController

@@ -12,7 +12,7 @@
  * @since         1.0
  * @license       http://www.opensource.org/licenses/mit-license.php MIT License
  */
-namespace Utils\Model\Behavior;
+namespace WRUtils\Model\Behavior;
 
 use ArrayObject;
 use Cake\Database\Type;
@@ -99,11 +99,11 @@ class UploadableBehavior extends Behavior
     {
         parent::__construct($table, $config);
 
-        Type::map('Utils.File', 'Utils\Database\Type\FileType');
+        Type::map('WRUtils.File', 'WRUtils\Database\Type\FileType');
 
         $schema = $table->schema();
         foreach ($this->getFieldList() as $field => $settings) {
-            $schema->columnType($field, 'Utils.File');
+            $schema->columnType($field, 'WRUtils.File');
         }
         $table->schema($schema);
 

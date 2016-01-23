@@ -12,7 +12,7 @@
  * @since         1.0
  * @license       http://www.opensource.org/licenses/mit-license.php MIT License
  */
-namespace Utils\Test\TestCase\Model\Behavior;
+namespace WRUtils\Test\TestCase\Model\Behavior;
 
 use Cake\Datasource\ConnectionManager;
 use Cake\TestSuite\TestCase;
@@ -66,7 +66,7 @@ class UploadableBehaviorTest extends TestCase
     public function testGetFieldList()
     {
         // adding 3 different fields
-        $this->Articles->addBehavior('Utils.Uploadable', [
+        $this->Articles->addBehavior('WRUtils.Uploadable', [
             'fieldWithoutSettings',
             'fieldWithCustomSettings1' => [
                 'fields' => [
@@ -120,7 +120,7 @@ class UploadableBehaviorTest extends TestCase
      */
     public function testSaveWithoutFile()
     {
-        $this->Articles->addBehavior('Utils.Uploadable');
+        $this->Articles->addBehavior('WRUtils.Uploadable');
 
         $data = [
             'id' => 1,
@@ -140,7 +140,7 @@ class UploadableBehaviorTest extends TestCase
 
         $this->Articles->removeBehavior('Uploadable');
 
-        $this->Articles->addBehavior('Utils.Uploadable', [
+        $this->Articles->addBehavior('WRUtils.Uploadable', [
             'file'
         ]);
 
@@ -191,7 +191,7 @@ class UploadableBehaviorTest extends TestCase
 
         $mocks = ['_mkdir', '_MoveUploadedFile'];
 
-        $behaviorMock = $this->getMock('\Utils\Model\Behavior\UploadableBehavior', $mocks, [$table, $behaviorOptions]);
+        $behaviorMock = $this->getMock('\WRUtils\Model\Behavior\UploadableBehavior', $mocks, [$table, $behaviorOptions]);
 
         $behaviorMock->expects($this->any())
             ->method('_mkdir')

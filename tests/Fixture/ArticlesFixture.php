@@ -12,7 +12,7 @@
  * @since         1.0
  * @license       http://www.opensource.org/licenses/mit-license.php MIT License
  */
-namespace Utils\Test\Fixture;
+namespace WRUtils\Test\Fixture;
 
 use Cake\TestSuite\Fixture\TestFixture;
 
