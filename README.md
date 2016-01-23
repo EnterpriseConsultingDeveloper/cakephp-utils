@@ -1,5 +1,15 @@
 # cakephp-utils
 
+
+## Installation
+
+You can install the plugin cackephp-utils into your CakePHP application using [composer](http://getcomposer.org) and executing the
+following lines in the root of your application.
+
+```
+composer require whiterabbit/cackephp-utils 
+```
+
 License
 -------
 

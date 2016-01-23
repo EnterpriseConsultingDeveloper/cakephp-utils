@@ -1,6 +1,6 @@
 <?php
 use Cake\Routing\Router;
 
-Router::plugin('Utils', function ($routes) {
+Router::plugin('WRUtils', function ($routes) {
     $routes->fallbacks();
 });
