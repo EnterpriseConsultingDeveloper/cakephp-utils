@@ -2,6 +2,7 @@
     "name": "whiterabbit/cakephp-utils",
     "description": "Some utils for CakePHP 3.x like an Uploadable Behaviour for AmazonS3",
     "license": "MIT",
+    "type": "cakephp-plugin",
     "authors": [
         {
             "name": "dinofratelli",
