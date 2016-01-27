@@ -10,6 +10,10 @@ following lines in the root of your application.
 composer require whiterabbit/cackephp-utils 
 ```
 
+## version
+
+0.1.1
+
 License
 -------
 
