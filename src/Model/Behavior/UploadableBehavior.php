@@ -166,6 +166,7 @@ class UploadableBehavior extends Behavior
         // Poll the bucket until it is accessible
         $this->_s3Client->waitUntil('BucketExists', array('Bucket' => $bucketName));
     }
+
     /**
      * beforeSave callback
      *
@@ -353,21 +354,6 @@ class UploadableBehavior extends Behavior
 
         //TODO: gestire eccezioni
         return true;
-
-        /*
-        $uploadPath = $this->_getPath($entity, $field, ['file' => true]);
-
-        // creating the path if not exists
-        if (!is_dir($this->_getPath($entity, $field, ['root' => false, 'file' => false]))) {
-            $this->_mkdir($this->_getPath($entity, $field, ['root' => false, 'file' => false]), 0777, true);
-        }
-
-        // upload the file and return true
-        if ($this->_moveUploadedFile($_upload['tmp_name'], $uploadPath)) {
-            return true;
-        }
-        return false;
-        */
     }
 
     /**
@@ -584,8 +570,6 @@ class UploadableBehavior extends Behavior
             '\\' => DIRECTORY_SEPARATOR,
         ];
 
-
-
         $builtFileName = str_replace(array_keys($replacements), array_values($replacements), $fileName);
 
         return $builtFileName;
@@ -620,28 +604,6 @@ class UploadableBehavior extends Behavior
         return mkdir($pathname, $mode, $recursive);
     }
 
-    /**
-     * _removeFile
-     *
-     * @param string $file Path of the file
-     * @return bool
-     */
-    /*
-    protected function _removeFile($file)
-    {
-        $_file = new File($file);
-        if ($_file->exists()) {
-            $_file->delete();
-
-            $folder = $_file->folder();
-            if (count($folder->find()) === 0) {
-                $folder->delete();
-            }
-            return true;
-        }
-        return false;
-    }
-    */
 
     /**
      * _removeFileFromS3
@@ -654,12 +616,14 @@ class UploadableBehavior extends Behavior
     protected function _removeFileFromS3($file, $entity, $field)
     {
         //$_file = new File($file);
-        $bucketName = $this->_getBucketName($entity, $field);
-        if($this->_s3Client->doesObjectExist($bucketName, $file)) {
-            $result = $this->_s3Client->deleteObject(array(
-                'Bucket'  => $bucketName,
-                'Key' => $file
-            ));
+        if($file != null && $file != '') { // Only if a file exist!
+            $bucketName = $this->_getBucketName($entity, $field);
+            if($this->_s3Client->doesObjectExist($bucketName, $file)) {
+                $result = $this->_s3Client->deleteObject(array(
+                    'Bucket'  => $bucketName,
+                    'Key' => $file
+                ));
+            }
         }
 
         //debug($result); die;
