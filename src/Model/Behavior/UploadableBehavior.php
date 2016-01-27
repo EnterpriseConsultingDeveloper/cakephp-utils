@@ -178,6 +178,7 @@ class UploadableBehavior extends Behavior
     {
         $uploads = [];
         $fields = $this->getFieldList();
+
         foreach ($fields as $field => $data) {
             if (!is_string($entity->get($field))) {
                 $uploads[$field] = $entity->get($field);
@@ -191,7 +192,7 @@ class UploadableBehavior extends Behavior
                     $fieldConfig = $this->config($field);
 
                     if ($fieldConfig['removeFileOnUpdate']) {
-                        $this->_removeFile($entity->getOriginal($field));
+                        //$this->_removeFile($entity->getOriginal($field));
                         $this->_removeFileFromS3($entity->getOriginal($field), $entity, $field);
                     }
                 }
@@ -212,6 +213,7 @@ class UploadableBehavior extends Behavior
     {
         $fields = $this->getFieldList();
         $storedToSave = [];
+
         foreach ($fields as $field => $data) {
             if ($this->_ifUploaded($entity, $field)) {
                 if ($this->_uploadFile($entity, $field)) {
@@ -242,7 +244,7 @@ class UploadableBehavior extends Behavior
         foreach ($fields as $field => $data) {
             $fieldConfig = $this->config($field);
             if ($fieldConfig['removeFileOnDelete']) {
-                $this->_removeFile($entity->get($field));
+                //$this->_removeFile($entity->get($field));
                 $this->_removeFileFromS3($entity->get($field), $entity, $field);
             }
         }
@@ -322,13 +324,13 @@ class UploadableBehavior extends Behavior
     {
         // creating the bucket if not exists
         $bucketName = $this->_getBucketName($entity, $field);
+
         $this->_createBucket($bucketName);
 
         $_upload = $this->_uploads[$field];
 
         $ext = pathinfo($_upload['name'], PATHINFO_EXTENSION);
         $fileKey = $this->_getFileKey($_upload['tmp_name'], $ext);
-        //debug($fileKey); die;
 
         // Upload an object by streaming the contents of a file
         $result = $this->_s3Client->putObject(array(
@@ -624,6 +626,7 @@ class UploadableBehavior extends Behavior
      * @param string $file Path of the file
      * @return bool
      */
+    /*
     protected function _removeFile($file)
     {
         $_file = new File($file);
@@ -638,6 +641,7 @@ class UploadableBehavior extends Behavior
         }
         return false;
     }
+    */
 
     /**
      * _removeFileFromS3
@@ -651,11 +655,12 @@ class UploadableBehavior extends Behavior
     {
         //$_file = new File($file);
         $bucketName = $this->_getBucketName($entity, $field);
-
-        $result = $this->_s3Client->deleteObject(array(
-            'Bucket'  => $bucketName,
-            'Key' => $file
-        ));
+        if($this->_s3Client->doesObjectExist($bucketName, $file)) {
+            $result = $this->_s3Client->deleteObject(array(
+                'Bucket'  => $bucketName,
+                'Key' => $file
+            ));
+        }
 
         //debug($result); die;
         //TODO: migliorare il ritorno
