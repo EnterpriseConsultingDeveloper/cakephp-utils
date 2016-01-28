@@ -74,8 +74,8 @@ class S3FileHelper extends Helper
             //'debug'   => true
         ];
 
-        if (!isset($options['noimagethtml'])) {
-            $options['noimagethtml'] = '';
+        if (!isset($options['noimagehtml'])) {
+            $options['noimagehtml'] = '';
         }
 
         $S3Client = new S3Client($S3options);
@@ -84,7 +84,7 @@ class S3FileHelper extends Helper
             $plainUrl = $S3Client->getObjectUrl($bucket, $path, '+10 minutes');
             $html .= $this->Html->image($plainUrl, $options);
         } else {
-            $html .= $options['noimagethtml'];
+            $html .= $options['noimagehtml'];
         }
 
         return $html;
