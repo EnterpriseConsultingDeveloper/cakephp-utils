@@ -31,6 +31,9 @@ public function initialize() {
 
 ## version
 
+0.1.3.1
+Solved sum bug on S3FileHelper
+
 0.1.3
 Added S3FileHelper helper
 
