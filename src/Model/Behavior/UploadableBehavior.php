@@ -38,6 +38,8 @@ class UploadableBehavior extends Behavior
      * Default configuration.
      *
      * 'fileName' => '{ORIGINAL}|{GENERATEDKEY}'
+     * 'bucket' => '{model}.{field}'
+     * 'path' => '{ROOT}{DS}{WEBROOT}{DS}uploads{DS}{model}{DS}{field}{DS}',
      * @var array
      */
     protected $_defaultConfig = [
@@ -50,11 +52,10 @@ class UploadableBehavior extends Behavior
                 'fileName' => false,
                 'filePath' => false,
             ],
-            'removeFileOnUpdate' => true,
             'removeFileOnDelete' => true,
             'field' => 'id',
-            'path' => '{ROOT}{DS}{WEBROOT}{DS}uploads{DS}{model}{DS}{field}{DS}',
-            'bucket' => '{model}.{field}.whiterabbitesuite.com',
+            'path' => '{model}{DS}{field}{DS}',
+            'bucket' => '{model}.whiterabbitsuite.com',
             'fileName' => '{GENERATEDKEY}',
         ]
     ];
@@ -191,11 +192,6 @@ class UploadableBehavior extends Behavior
                 $originalField = $entity->getOriginal($field);
                 if ($dirtyField && !is_null($originalField) && !is_array($originalField)) {
                     $fieldConfig = $this->config($field);
-
-                    if ($fieldConfig['removeFileOnUpdate']) {
-                        //$this->_removeFile($entity->getOriginal($field));
-                        $this->_removeFileFromS3($entity->getOriginal($field), $entity, $field);
-                    }
                 }
             }
         }
@@ -225,6 +221,7 @@ class UploadableBehavior extends Behavior
                 }
             }
         }
+
         foreach ($storedToSave as $toSave) {
             $event->subject()->save($toSave);
         }
@@ -331,7 +328,7 @@ class UploadableBehavior extends Behavior
         $_upload = $this->_uploads[$field];
 
         $ext = pathinfo($_upload['name'], PATHINFO_EXTENSION);
-        $fileKey = $this->_getFileKey($_upload['tmp_name'], $ext);
+        $fileKey = $this->_getS3FolderPath($entity, $field);
 
         // Upload an object by streaming the contents of a file
         $result = $this->_s3Client->putObject(array(
@@ -409,7 +406,8 @@ class UploadableBehavior extends Behavior
                     $entity->set($column, $this->_getFileName($entity, $field, $options = []));
                 }
                 if ($key == "filePath") {
-                    $entity->set($column, $this->_getPath($entity, $field, ['root' => false, 'file' => true]));
+                    //$entity->set($column, $this->_getPath($entity, $field, ['root' => false, 'file' => true]));
+                    $entity->set($column, $this->_getS3FolderPath($entity, $field)); // This is the value saved in the main field
                 }
             }
         }
@@ -513,8 +511,6 @@ class UploadableBehavior extends Behavior
             $builtPath = $builtPath . $this->_getFileName($entity, $field);
         }
 
-        //debug($builtPath);die;
-
         return $builtPath;
     }
 
@@ -530,6 +526,21 @@ class UploadableBehavior extends Behavior
     protected function _getUrl($entity, $field)
     {
         $path = '/' . $this->_getPath($entity, $field, ['root' => false, 'file' => true]);
+        return str_replace(DS, '/', $path);
+    }
+
+    /**
+     * _getS3FolderPath
+     *
+     * Returns the S3 Folder Path of the given field.
+     *
+     * @param \Cake\ORM\Entity $entity Entity to check on.
+     * @param string $field Field to check on.
+     * @return string
+     */
+    protected function _getS3FolderPath($entity, $field)
+    {
+        $path = $this->_getPath($entity, $field, ['root' => false, 'file' => true]);
         return str_replace(DS, '/', $path);
     }
 
@@ -615,7 +626,6 @@ class UploadableBehavior extends Behavior
      */
     protected function _removeFileFromS3($file, $entity, $field)
     {
-        //$_file = new File($file);
         if($file != null && $file != '') { // Only if a file exist!
             $bucketName = $this->_getBucketName($entity, $field);
             if($this->_s3Client->doesObjectExist($bucketName, $file)) {
@@ -626,7 +636,6 @@ class UploadableBehavior extends Behavior
             }
         }
 
-        //debug($result); die;
         //TODO: migliorare il ritorno
         return true;
     }

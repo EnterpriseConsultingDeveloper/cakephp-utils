@@ -10,9 +10,35 @@ following lines in the root of your application.
 composer require whiterabbit/cackephp-utils 
 ```
 
+## Configuration
+
+You will need to add the following line to your application's bootstrap.php file:
+
+```php
+Plugin::load('WRUtils');
+```
+
+For the S3File Helper, in your AppController add
+
+```php
+public function initialize() {
+    $this->helpers[] = 'Utils.Search';
+}
+```
+
+
+    
+
 ## version
 
+0.1.3
+Added S3FileHelper helper
+
+0.1.2
+Added folder management for S3
+
 0.1.1
+Initial release
 
 License
 -------
