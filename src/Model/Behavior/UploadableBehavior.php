@@ -31,14 +31,38 @@ require_once(ROOT .DS. 'src' . DS . 'Lib' . DS . 'aws' . DS .'aws-autoloader.php
 /**
  * Uploadable behavior
  *
+ * Configuration
+ * 1. Set your path to SDK AWS API aws-autoloader.php in the require_once. In general it is like ROOT .DS. 'src' . DS . 'Lib' . DS . 'aws' . DS .'aws-autoloader.php;
+ *
+ * 2. Set correct parameter to access your AWS
+ * 'S3Key' => ''
+ * 'S3Secret' => '',
+ * 'S3Region' => '',
+ * 'S3Version' => '',
+ * 'S3SignatureVersion' => ''
+ * ** See next for other parameters options
+ *
+ * 3. Add
+ * in your bootstrap.php
+ * Plugin::load('WRUtils');
+ *
+ * 4. Usage:
+ * $this->S3File->image($path, $options);
+ *
+ * $path is the path of the image in the S3 bucket
+ * $options are the same as for HTML image, like ['class'=>'img-responsive']
+ * if you want to show a default image when no image is retrieved pass, for example, in $options ['noimageimage'=>'path/to/img/image.jpg']
+ * if you want to show an HTML piece of code when no image is retrieved pass, for example, in $options ['noimagehtml'=>'<span>no image</span>']
+ *
  */
+
 class UploadableBehavior extends Behavior
 {
     /**
      * Default configuration.
      *
      * 'fileName' => '{ORIGINAL}|{GENERATEDKEY}'
-     * 'bucket' => '{model}.{field}'
+     * 'bucket' => suffix for buckets (like mydomain.com)
      * 'path' => '{ROOT}{DS}{WEBROOT}{DS}uploads{DS}{model}{DS}{field}{DS}',
      * @var array
      */
@@ -55,8 +79,13 @@ class UploadableBehavior extends Behavior
             'removeFileOnDelete' => true,
             'field' => 'id',
             'path' => '{model}{DS}{field}{DS}',
-            'bucket' => '{model}.whiterabbitsuite.com',
+            'bucket' => 'whiterabbitsuite.com',
             'fileName' => '{GENERATEDKEY}',
+            'S3Key' => 'AKIAJMF5RMYVJVFEBOLQ',
+            'S3Secret' => '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',
+            'S3Region' => 'us-east-1',
+            'S3Version' => 'latest',
+            'S3SignatureVersion' => 'v4'
         ]
     ];
 
@@ -91,6 +120,13 @@ class UploadableBehavior extends Behavior
     protected $_s3Client;
 
     /**
+     * Customer site name
+     *
+     * @var string
+     */
+    protected $_customerSite = '';
+
+    /**
      * __construct
      *
      * @param Table $table Table.
@@ -110,15 +146,17 @@ class UploadableBehavior extends Behavior
 
         $this->_Table = $table;
 
-        //TODO: sistemare nella config
-        $credentials = new Credentials('AKIAJMF5RMYVJVFEBOLQ', '/tRq5IkafYk67Xy1OP++f+UUsT/VH1oWe51U/wak');
+        // Amazon S3 config
+        $config = $this->config($field);
+
+        $credentials = new Credentials($config['S3Key'], $config['S3Secret']);
         $options = [
-            'region'            => 'us-east-1',
-            'version'           => 'latest',
+            'region'            => $config['S3Region'],
+            'version'           => $config['S3Version'],
             'http'    => [
                 'verify' => false
             ],
-            'signature_version' => 'v4',
+            'signature_version' => $config['S3SignatureVersion'],
             'credentials' => $credentials,
             //'debug'   => true
         ];
@@ -130,22 +168,15 @@ class UploadableBehavior extends Behavior
      * _getBucketName
      * Get the bucket name for Amazon S3
      *
-     * @param \Cake\ORM\Entity $entity Entity to check on.
-     * @param string $field Field to check on.
+     * @param string $site.
      * @return string
      */
-    protected function _getBucketName($entity, $field)
+    protected function _getBucketName($site, $field)
     {
         $config = $this->config($field);
-
         $bucket = $config['bucket'];
 
-        $replacements = [
-            '{field}' => $entity->get($config['field']),
-            '{model}' => Inflector::underscore($this->_Table->alias())
-        ];
-
-        $builtBucket = str_replace(array_keys($replacements), array_values($replacements), $bucket);
+        $builtBucket = strlen($bucket) > 0 ? $site . '.' . $bucket : $site;
 
         return $builtBucket;
     }
@@ -181,6 +212,7 @@ class UploadableBehavior extends Behavior
         $uploads = [];
         $fields = $this->getFieldList();
 
+        $this->_customerSite = $options['loggedInCustomer'];
         foreach ($fields as $field => $data) {
             if (!is_string($entity->get($field))) {
                 $uploads[$field] = $entity->get($field);
@@ -196,6 +228,16 @@ class UploadableBehavior extends Behavior
             }
         }
         $this->_uploads = $uploads;
+
+        /*
+         * if (empty($options['loggedInUser'])) {
+			return;
+		}
+		if ($entity->isNew()) {
+			$entity->set('created_by', $options['loggedInUser']);
+		}
+		$entity->set('modified_by', $options['loggedInUser']);
+         */
     }
 
     /**
@@ -321,7 +363,7 @@ class UploadableBehavior extends Behavior
     protected function _uploadFile($entity, $field, $options = [])
     {
         // creating the bucket if not exists
-        $bucketName = $this->_getBucketName($entity, $field);
+        $bucketName = $this->_getBucketName($this->_customerSite, $field);
 
         $this->_createBucket($bucketName);
 
@@ -627,7 +669,7 @@ class UploadableBehavior extends Behavior
     protected function _removeFileFromS3($file, $entity, $field)
     {
         if($file != null && $file != '') { // Only if a file exist!
-            $bucketName = $this->_getBucketName($entity, $field);
+            $bucketName = $this->_getBucketName($this->_customerSite, $field);
             if($this->_s3Client->doesObjectExist($bucketName, $file)) {
                 $result = $this->_s3Client->deleteObject(array(
                     'Bucket'  => $bucketName,

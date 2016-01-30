@@ -18,11 +18,28 @@ You will need to add the following line to your application's bootstrap.php file
 Plugin::load('WRUtils');
 ```
 
+And in your AppController add
+
+```php
+use WRUtils\Controller\WRTrait;
+
+class AppController extends Controller
+{
+    use WRTrait;
+}
+```    
+    
+In order to pass a customer name / site to the UploadableBehavior you have to put it in the parameter session Auth.User.customer_site (ie from AppController):
+
+```php
+$this->request->session()->write('Auth.User.customer_site', 'my.customer.site');
+```
+
 For the S3File Helper, in your AppController add
 
 ```php
 public function initialize() {
-    $this->helpers[] = 'Utils.Search';
+    $this->helpers[] = 'WRUtils.S3File';
 }
 ```
 
@@ -30,6 +47,12 @@ public function initialize() {
     
 
 ## version
+
+0.2.1
+- S3FileHelper: Set the default image instead of an html code
+- Added a customer site name to the uploadable behavior in order to create, in S3, separate bucket for different customers.  
+if you want use this feature add the parameter Auth.User.customer_site in your session
+
 
 0.1.3.1
 Solved sum bug on S3FileHelper
